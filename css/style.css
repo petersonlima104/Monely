@@ -1,0 +1,16 @@
+body {
+  background: #f4f6f9;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+h2 {
+  font-weight: 600;
+}
+
+.list-group-item {
+  border: none;
+  border-bottom: 1px solid #eee;
+}
