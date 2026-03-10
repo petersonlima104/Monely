@@ -186,14 +186,54 @@ window.logout = async () => {
 };
 
 async function verificarMes() {
-  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
+  const refMesAtual = doc(
+    db,
+    "usuarios",
+    auth.currentUser.uid,
+    "meses",
+    mesAtual,
+  );
+  const snapAtual = await getDoc(refMesAtual);
 
-  const snap = await getDoc(ref);
+  if (!snapAtual.exists()) {
+    // descobrir mês anterior
+    const data = new Date(mesAtual + "-01");
+    data.setMonth(data.getMonth() - 1);
 
-  if (!snap.exists()) {
-    await setDoc(ref, {
+    const mesAnterior = data.toISOString().slice(0, 7);
+
+    const refMesAnterior = doc(
+      db,
+      "usuarios",
+      auth.currentUser.uid,
+      "meses",
+      mesAnterior,
+    );
+    const snapAnterior = await getDoc(refMesAnterior);
+
+    let saldoAnterior = 0;
+    let contasFixas = [];
+
+    if (snapAnterior.exists()) {
+      const dadosAnterior = snapAnterior.data();
+
+      let entradas = 0;
+      let saidas = 0;
+
+      (dadosAnterior.rendas || []).forEach((r) => (entradas += r.valor));
+      (dadosAnterior.contas || []).forEach((c) => (saidas += c.valor));
+
+      saldoAnterior = entradas - saidas;
+
+      contasFixas = (dadosAnterior.contas || []).filter(
+        (c) => c.tipo === "fixa",
+      );
+    }
+
+    await setDoc(refMesAtual, {
+      saldoAnterior: saldoAnterior,
       rendas: [],
-      contas: [],
+      contas: contasFixas,
     });
   }
 }
@@ -237,6 +277,8 @@ async function calcularSaldo() {
   (data.rendas || []).forEach((r) => (entradas += r.valor));
   (data.contas || []).forEach((c) => (saidas += c.valor));
 
+  const saldoAnterior = data.saldoAnterior || 0;
+
   totalEntradas.innerText = entradas.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -247,7 +289,7 @@ async function calcularSaldo() {
     currency: "BRL",
   });
 
-  const saldo = entradas - saidas;
+  const saldo = saldoAnterior + entradas - saidas;
 
   saldoEl.innerText = saldo.toLocaleString("pt-BR", {
     style: "currency",
