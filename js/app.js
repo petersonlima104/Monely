@@ -93,25 +93,26 @@ Excluir
 
   (data.contas || []).forEach((c, index) => {
     const li = document.createElement("li");
-
-    li.className = "list-group-item d-flex justify-content-between";
+    li.className =
+      "list-group-item d-flex justify-content-between align-items-center";
 
     li.innerHTML = `
-<div>
+    <div>
+      <strong>${c.desc}</strong><br>
+      <span class="text-danger">
+        ${Number(c.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+      </span>
+    </div>
 
-<strong>${c.desc}</strong><br>
-
-<span class="text-danger">
-${Number(c.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-</span>
-
-</div>
-
-<button class="btn btn-sm btn-danger"
-onclick="removerConta(${index})">
-Excluir
-</button>
-`;
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-primary" onclick="editarConta(${index})">
+        Editar
+      </button>
+      <button class="btn btn-sm btn-danger" onclick="removerConta(${index})">
+        Excluir
+      </button>
+    </div>
+  `;
 
     listaContas.appendChild(li);
   });
@@ -149,6 +150,41 @@ window.addConta = async () => {
 
   calcularSaldo();
   atualizarListas();
+};
+
+window.editarConta = (index) => {
+  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
+
+  getDoc(ref).then((snap) => {
+    const data = snap.data();
+    const conta = data.contas[index];
+
+    // preencher modal
+    contaDesc.value = conta.desc;
+    contaValor.value = conta.valor;
+    contaData.value = conta.data;
+    contaTipo.value = conta.tipo;
+
+    // abrir modal
+    const modal = new bootstrap.Modal(document.getElementById("modalConta"));
+    modal.show();
+
+    // sobrescrever botão salvar para atualizar
+    const salvarBtn = document.querySelector("#modalConta .btn-danger");
+    salvarBtn.onclick = async () => {
+      data.contas[index] = {
+        desc: contaDesc.value,
+        valor: Number(contaValor.value),
+        tipo: contaTipo.value,
+        data: contaData.value,
+      };
+
+      await updateDoc(ref, { contas: data.contas });
+      atualizarListas();
+      calcularSaldo();
+      modal.hide();
+    };
+  });
 };
 
 window.removerRenda = async (index) => {
