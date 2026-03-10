@@ -274,27 +274,39 @@ async function calcularSaldo() {
   let entradas = 0;
   let saidas = 0;
 
-  (data.rendas || []).forEach((r) => (entradas += r.valor));
-  (data.contas || []).forEach((c) => (saidas += c.valor));
+  (data.rendas || []).forEach((r) => (entradas += Number(r.valor) || 0));
+  (data.contas || []).forEach((c) => (saidas += Number(c.valor) || 0));
 
-  const saldoAnterior = data.saldoAnterior || 0;
-
-  totalEntradas.innerText = entradas.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  totalSaidas.innerText = saidas.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  const saldoAnterior = Number(data.saldoAnterior) || 0;
 
   const saldo = saldoAnterior + entradas - saidas;
 
-  saldoEl.innerText = saldo.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  animarValor(totalEntradas, entradas);
+  animarValor(totalSaidas, saidas);
+  animarValor(saldoEl, saldo);
+}
+
+function animarValor(elemento, valorFinal) {
+  valorFinal = Number(valorFinal) || 0;
+
+  let valorAtual = 0;
+
+  const duracao = 500;
+  const incremento = valorFinal / (duracao / 16);
+
+  const timer = setInterval(() => {
+    valorAtual += incremento;
+
+    if (valorAtual >= valorFinal) {
+      valorAtual = valorFinal;
+      clearInterval(timer);
+    }
+
+    elemento.innerText = valorAtual.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }, 16);
 }
 
 onAuthStateChanged(auth, async (user) => {
