@@ -323,17 +323,15 @@ function animarValor(elemento, valorFinal) {
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    loginArea.style.display = "none";
-    dashboard.style.display = "block";
+    loginArea.classList.add("hidden"); // esconde login
+    dashboard.classList.remove("hidden"); // mostra dashboard
 
     await verificarMes();
-
     await carregarMeses();
-
     calcularSaldo();
     atualizarListas();
   } else {
-    dashboard.style.display = "none";
-    loginArea.style.display = "block";
+    dashboard.classList.add("hidden"); // esconde dashboard
+    loginArea.classList.remove("hidden"); // mostra login
   }
 });

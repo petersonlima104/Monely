@@ -10,8 +10,6 @@
     <title>Monely</title>
     <link rel="icon" type="image/png" href="assets/icon-192.png" />
 
-    <link rel="stylesheet" href="css/style.css" />
-
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -21,26 +19,26 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
     />
+
+    <link rel="stylesheet" href="css/style.css" />
   </head>
 
   <body>
     <!-- LOGIN -->
-
     <div id="loginArea" class="login-container">
       <div class="login-card">
-        <h3 class="mb-4">Monely</h3>
-
-        <p class="text-muted mb-4">Controle financeiro simples</p>
-
-        <button onclick="loginGoogle()" class="btn btn-google w-100">
-          Entrar com Google
+        <img src="assets/icon-192.png" alt="Monely" class="logo" />
+        <h3>Monely</h3>
+        <p>Controle financeiro simples</p>
+        <button onclick="loginGoogle()" class="btn btn-google">
+          <i class="bi bi-google"></i> Entrar com Google
         </button>
       </div>
     </div>
 
     <!-- DASHBOARD -->
 
-    <div id="dashboard" style="display: none">
+    <div id="dashboard" class="hidden">
       <div class="container mt-4">
         <div class="top-bar">
           <h4 class="title">Dashboard</h4>

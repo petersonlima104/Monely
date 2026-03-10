@@ -6,33 +6,83 @@ body {
 }
 
 /* LOGIN */
-
 .login-container {
-  height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
-}
-
-.login-card {
-  background: white;
-  color: #111;
-  padding: 40px;
-  border-radius: 15px;
+  align-items: center;
+  min-height: 100vh;
   width: 100%;
-  max-width: 380px;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 20px;
 }
 
+/* Classe para esconder elementos */
+.hidden {
+  display: none !important;
+}
+
+/* LOGIN CARD */
+.login-card {
+  background: #ffffff;
+  color: #111;
+  padding: 50px 40px;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* LOGO */
+.login-card img.logo {
+  width: 80px;
+  margin-bottom: 20px;
+}
+
+/* TITULO E TEXTO */
+.login-card h3 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #1c3faa; /* azul destaque */
+}
+
+.login-card p {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 25px;
+}
+
+/* BOTÃO GOOGLE */
 .btn-google {
   background: #ea4335;
   color: white;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 12px 0;
+  border-radius: 12px;
+  border: none;
+  width: 100%;
 }
 
 .btn-google:hover {
   background: #d73325;
+  transform: translateY(-2px);
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+  .login-card {
+    padding: 40px 30px;
+  }
+
+  .login-card h3 {
+    font-size: 24px;
+  }
+
+  .btn-google {
+    font-size: 15px;
+    padding: 10px 0;
+  }
 }
 
 /* TOPO */
