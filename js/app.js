@@ -6,6 +6,8 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  collection,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 import {
@@ -50,51 +52,9 @@ const totalSaidas = document.getElementById("totalSaidas");
 
 const listaRendas = document.getElementById("listaRendas");
 const listaContas = document.getElementById("listaContas");
+const mesSelector = document.getElementById("mesSelector");
 
-const mesAtual = new Date().toISOString().slice(0, 7);
-
-async function verificarMes() {
-  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
-
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    await setDoc(ref, {
-      rendas: [],
-      contas: [],
-    });
-  }
-}
-
-async function calcularSaldo() {
-  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
-
-  const data = (await getDoc(ref)).data();
-
-  let entradas = 0;
-  let saidas = 0;
-
-  data.rendas.forEach((r) => (entradas += r.valor));
-
-  data.contas.forEach((c) => (saidas += c.valor));
-
-  totalEntradas.innerText = entradas.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  totalSaidas.innerText = saidas.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-
-  const saldo = entradas - saidas;
-
-  saldoEl.innerText = saldo.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
+let mesAtual = new Date().toISOString().slice(0, 7);
 
 async function atualizarListas() {
   const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
@@ -223,12 +183,85 @@ window.logout = async () => {
   await signOut(auth);
 };
 
+async function verificarMes() {
+  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
+
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      rendas: [],
+      contas: [],
+    });
+  }
+}
+
+async function carregarMeses() {
+  const ref = collection(db, "usuarios", auth.currentUser.uid, "meses");
+
+  const snapshot = await getDocs(ref);
+
+  mesSelector.innerHTML = "";
+
+  snapshot.forEach((docItem) => {
+    const option = document.createElement("option");
+
+    option.value = docItem.id;
+    option.textContent = docItem.id;
+
+    mesSelector.appendChild(option);
+  });
+
+  mesSelector.value = mesAtual;
+}
+
+mesSelector.addEventListener("change", () => {
+  mesAtual = mesSelector.value;
+
+  calcularSaldo();
+  atualizarListas();
+});
+
+async function calcularSaldo() {
+  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
+
+  const data = (await getDoc(ref)).data();
+
+  if (!data) return;
+
+  let entradas = 0;
+  let saidas = 0;
+
+  data.rendas.forEach((r) => (entradas += r.valor));
+
+  data.contas.forEach((c) => (saidas += c.valor));
+
+  totalEntradas.innerText = entradas.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+  totalSaidas.innerText = saidas.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+  const saldo = entradas - saidas;
+
+  saldoEl.innerText = saldo.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     loginArea.style.display = "none";
     dashboard.style.display = "block";
 
     await verificarMes();
+
+    await carregarMeses();
 
     calcularSaldo();
     atualizarListas();
