@@ -1,16 +1,104 @@
 body {
-  background: #f4f6f9;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  min-height: 100vh;
+  font-family: system-ui;
+  color: white;
 }
 
-.card {
-  border-radius: 10px;
+/* LOGIN */
+
+.login-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-h2 {
+.login-card {
+  background: white;
+  color: #111;
+  padding: 40px;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.btn-google {
+  background: #ea4335;
+  color: white;
+  font-weight: 500;
+}
+
+.btn-google:hover {
+  background: #d73325;
+}
+
+/* TOPO */
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.title {
   font-weight: 600;
+  color: white;
+}
+
+h5 {
+  font-weight: 600;
+}
+
+/* CARDS FINANCEIROS */
+
+.card-finance {
+  padding: 20px;
+  border-radius: 15px;
+  color: white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.entrada {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.saida {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+}
+
+.saldo {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+/* LISTAS */
+
+.card-list {
+  background: white;
+  color: #111;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .list-group-item {
   border: none;
   border-bottom: 1px solid #eee;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 20px;
+  }
 }
