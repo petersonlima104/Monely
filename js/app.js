@@ -61,10 +61,12 @@ async function atualizarListas() {
 
   const data = (await getDoc(ref)).data();
 
+  if (!data) return;
+
   listaRendas.innerHTML = "";
   listaContas.innerHTML = "";
 
-  data.rendas.forEach((r, index) => {
+  (data.rendas || []).forEach((r, index) => {
     const li = document.createElement("li");
 
     li.className = "list-group-item d-flex justify-content-between";
@@ -75,7 +77,7 @@ async function atualizarListas() {
 <strong>${r.desc}</strong><br>
 
 <span class="text-success">
-${r.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+${Number(r.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
 </span>
 
 </div>
@@ -89,7 +91,7 @@ Excluir
     listaRendas.appendChild(li);
   });
 
-  data.contas.forEach((c, index) => {
+  (data.contas || []).forEach((c, index) => {
     const li = document.createElement("li");
 
     li.className = "list-group-item d-flex justify-content-between";
@@ -100,7 +102,7 @@ Excluir
 <strong>${c.desc}</strong><br>
 
 <span class="text-danger">
-${c.valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+${Number(c.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
 </span>
 
 </div>
@@ -232,9 +234,8 @@ async function calcularSaldo() {
   let entradas = 0;
   let saidas = 0;
 
-  data.rendas.forEach((r) => (entradas += r.valor));
-
-  data.contas.forEach((c) => (saidas += c.valor));
+  (data.rendas || []).forEach((r) => (entradas += r.valor));
+  (data.contas || []).forEach((c) => (saidas += c.valor));
 
   totalEntradas.innerText = entradas.toLocaleString("pt-BR", {
     style: "currency",
