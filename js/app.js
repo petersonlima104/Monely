@@ -267,15 +267,22 @@ mesSelector.addEventListener("change", () => {
 async function calcularSaldo() {
   const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
 
-  const data = (await getDoc(ref)).data();
+  const snap = await getDoc(ref);
 
-  if (!data) return;
+  if (!snap.exists()) return;
+
+  const data = snap.data();
 
   let entradas = 0;
   let saidas = 0;
 
-  (data.rendas || []).forEach((r) => (entradas += Number(r.valor) || 0));
-  (data.contas || []).forEach((c) => (saidas += Number(c.valor) || 0));
+  (data.rendas || []).forEach((r) => {
+    entradas += Number(r.valor) || 0;
+  });
+
+  (data.contas || []).forEach((c) => {
+    saidas += Number(c.valor) || 0;
+  });
 
   const saldoAnterior = Number(data.saldoAnterior) || 0;
 
@@ -287,17 +294,22 @@ async function calcularSaldo() {
 }
 
 function animarValor(elemento, valorFinal) {
-  valorFinal = Number(valorFinal) || 0;
+  valorFinal = Number(valorFinal);
+
+  if (isNaN(valorFinal)) valorFinal = 0;
 
   let valorAtual = 0;
+  const duracao = 400;
+  const passos = 25;
+  const incremento = valorFinal / passos;
 
-  const duracao = 500;
-  const incremento = valorFinal / (duracao / 16);
+  let contador = 0;
 
   const timer = setInterval(() => {
+    contador++;
     valorAtual += incremento;
 
-    if (valorAtual >= valorFinal) {
+    if (contador >= passos) {
       valorAtual = valorFinal;
       clearInterval(timer);
     }
@@ -306,7 +318,7 @@ function animarValor(elemento, valorFinal) {
       style: "currency",
       currency: "BRL",
     });
-  }, 16);
+  }, duracao / passos);
 }
 
 onAuthStateChanged(auth, async (user) => {
