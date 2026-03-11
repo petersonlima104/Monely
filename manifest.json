@@ -2,7 +2,7 @@
   "name": "Monely",
   "short_name": "Monely",
   "description": "Controle financeiro",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1c3faa",
   "theme_color": "#1c3faa",

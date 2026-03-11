@@ -1,12 +1,13 @@
 const CACHE_NAME = "monely-v1";
+
 const FILES_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/css/style.css",
-  "/js/app.js",
-  "/manifest.json",
-  "/assets/icon-192.png",
-  "/assets/icon-512.png",
+  "./",
+  "./index.html",
+  "./css/style.css",
+  "./js/app.js",
+  "./manifest.json",
+  "./assets/icon-192.png",
+  "./assets/icon-512.png",
 ];
 
 // INSTALAÇÃO
