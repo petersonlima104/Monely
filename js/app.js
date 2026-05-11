@@ -107,8 +107,33 @@ Excluir
     })
     .forEach((c, index) => {
       const li = document.createElement("li");
-      li.className =
-        "list-group-item d-flex justify-content-between align-items-center";
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      const amanha = new Date();
+      amanha.setDate(amanha.getDate() + 1);
+      amanha.setHours(0, 0, 0, 0);
+
+      const vencimento = new Date(c.vencimento + "T00:00:00");
+
+      let classeVencimento = "";
+      let textoStatus = c.status;
+
+      if (c.status !== "pago") {
+        if (vencimento < hoje) {
+          classeVencimento = "conta-vencida";
+          textoStatus = "Vencida";
+        } else if (vencimento.getTime() === hoje.getTime()) {
+          classeVencimento = "conta-hoje";
+          textoStatus = "Vence hoje";
+        } else if (vencimento.getTime() === amanha.getTime()) {
+          classeVencimento = "conta-amanha";
+          textoStatus = "Vence amanhã";
+        }
+      }
+
+      li.className = `list-group-item d-flex justify-content-between align-items-center ${classeVencimento}`;
 
       li.innerHTML = `
 <div>
@@ -134,7 +159,7 @@ Excluir
   <br>
 
   <small class="${c.status === "pago" ? "text-success" : "text-warning"}">
-    Status: ${c.status}
+    Status: ${textoStatus}
   </small>
 </div>
 
