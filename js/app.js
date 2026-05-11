@@ -43,7 +43,7 @@ const rendaValor = document.getElementById("rendaValor");
 
 const contaDesc = document.getElementById("contaDesc");
 const contaValor = document.getElementById("contaValor");
-const contaData = document.getElementById("contaData");
+const contaVencimento = document.getElementById("contaVencimento");
 const contaTipo = document.getElementById("contaTipo");
 
 const saldoEl = document.getElementById("saldo");
@@ -91,31 +91,78 @@ Excluir
     listaRendas.appendChild(li);
   });
 
-  (data.contas || []).forEach((c, index) => {
-    const li = document.createElement("li");
-    li.className =
-      "list-group-item d-flex justify-content-between align-items-center";
+  (data.contas || [])
+    .map((conta, index) => ({
+      ...conta,
+      originalIndex: index,
+    }))
+    .sort((a, b) => {
+      // pendentes primeiro
+      if (a.status !== b.status) {
+        return a.status === "pendente" ? -1 : 1;
+      }
 
-    li.innerHTML = `
-    <div>
-      <strong>${c.desc}</strong><br>
-      <span class="text-danger">
-        ${Number(c.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-      </span>
-    </div>
+      // ordenar por vencimento
+      return new Date(a.vencimento) - new Date(b.vencimento);
+    })
+    .forEach((c, index) => {
+      const li = document.createElement("li");
+      li.className =
+        "list-group-item d-flex justify-content-between align-items-center";
 
-    <div class="d-flex gap-2">
-      <button class="btn btn-sm btn-primary" onclick="editarConta(${index})">
-        Editar
+      li.innerHTML = `
+<div>
+  <strong>${c.desc}</strong><br>
+
+  <span class="text-danger">
+    ${Number(c.valor || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    })}
+  </span>
+
+  <br>
+
+  <small>
+  Vencimento: ${
+    c.vencimento
+      ? new Date(c.vencimento + "T00:00:00").toLocaleDateString("pt-BR")
+      : "-"
+  }
+  </small>
+
+  <br>
+
+  <small class="${c.status === "pago" ? "text-success" : "text-warning"}">
+    Status: ${c.status}
+  </small>
+</div>
+
+<div class="d-flex gap-2">
+  ${
+    c.status !== "pago"
+      ? `
+      <button
+        class="btn btn-sm btn-success"
+        onclick="marcarPago(${c.originalIndex})"
+      >
+        Pago
       </button>
-      <button class="btn btn-sm btn-danger" onclick="removerConta(${index})">
-        Excluir
-      </button>
-    </div>
-  `;
+    `
+      : ""
+  }
 
-    listaContas.appendChild(li);
-  });
+  <button
+    class="btn btn-sm btn-danger"
+    onclick="removerConta(${c.originalIndex})"
+  >
+    Excluir
+  </button>
+</div>
+`;
+
+      listaContas.appendChild(li);
+    });
 }
 
 window.addRenda = async () => {
@@ -146,7 +193,8 @@ window.addConta = async () => {
     desc: contaDesc.value,
     valor: Number(contaValor.value),
     tipo: contaTipo.value,
-    data: contaData.value,
+    vencimento: contaVencimento.value,
+    status: "pendente",
   });
 
   await updateDoc(ref, { contas: data.contas });
@@ -170,7 +218,7 @@ window.editarConta = (index) => {
     // preencher modal
     contaDesc.value = conta.desc;
     contaValor.value = conta.valor;
-    contaData.value = conta.data;
+    contaVencimento.value = conta.vencimento;
     contaTipo.value = conta.tipo;
 
     // abrir modal
@@ -184,7 +232,8 @@ window.editarConta = (index) => {
         desc: contaDesc.value,
         valor: Number(contaValor.value),
         tipo: contaTipo.value,
-        data: contaData.value,
+        vencimento: contaVencimento.value,
+        status: conta.status,
       };
 
       await updateDoc(ref, { contas: data.contas });
@@ -232,6 +281,21 @@ window.resetModalConta = () => {
   salvarBtn.onclick = () => {
     addConta();
   };
+};
+
+window.marcarPago = async (index) => {
+  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
+
+  const data = (await getDoc(ref)).data();
+
+  data.contas[index].status = "pago";
+
+  await updateDoc(ref, {
+    contas: data.contas,
+  });
+
+  calcularSaldo();
+  atualizarListas();
 };
 
 window.loginGoogle = async () => {
@@ -338,7 +402,9 @@ async function calcularSaldo() {
   });
 
   (data.contas || []).forEach((c) => {
-    saidas += Number(c.valor) || 0;
+    if (c.status === "pago") {
+      saidas += Number(c.valor) || 0;
+    }
   });
 
   const saldoAnterior = Number(data.saldoAnterior) || 0;
