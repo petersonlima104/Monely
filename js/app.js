@@ -441,6 +441,46 @@ async function calcularSaldo() {
   animarValor(saldoEl, saldo);
 }
 
+async function solicitarPermissaoNotificacao() {
+  if ("Notification" in window) {
+    const permissao = await Notification.requestPermission();
+
+    console.log("Permissão:", permissao);
+  }
+}
+
+async function verificarContasVencendo() {
+  if (Notification.permission !== "granted") return;
+
+  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
+
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+
+  const agora = new Date();
+
+  (data.contas || []).forEach((conta) => {
+    if (conta.status !== "pago" && conta.vencimento) {
+      const vencimento = new Date(conta.vencimento + "T00:00:00");
+
+      const diferenca = vencimento.getTime() - agora.getTime();
+
+      const horasRestantes = diferenca / (1000 * 60 * 60);
+
+      // ENTRE 12h e 36h antes
+      if (horasRestantes <= 36 && horasRestantes >= 12) {
+        new Notification("Monely", {
+          body: `Sua conta "${conta.desc}" vence amanhã.`,
+          icon: "./assets/icon-192.png",
+        });
+      }
+    }
+  });
+}
+
 function animarValor(elemento, valorFinal) {
   valorFinal = Number(valorFinal);
 
@@ -473,6 +513,8 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     loginArea.classList.add("hidden"); // esconde login
     dashboard.classList.remove("hidden"); // mostra dashboard
+
+    await solicitarPermissaoNotificacao();
 
     await verificarMes();
     await carregarMeses();
