@@ -130,6 +130,9 @@ window.addRenda = async () => {
 
   await updateDoc(ref, { rendas: data.rendas });
 
+  rendaDesc.value = "";
+  rendaValor.value = "";
+
   calcularSaldo();
   atualizarListas();
 };
@@ -147,6 +150,11 @@ window.addConta = async () => {
   });
 
   await updateDoc(ref, { contas: data.contas });
+
+  contaDesc.value = "";
+  contaValor.value = "";
+  contaVencimento.value = "";
+  contaTipo.value = "fixa";
 
   calcularSaldo();
   atualizarListas();
@@ -211,6 +219,19 @@ window.removerConta = async (index) => {
 
   calcularSaldo();
   atualizarListas();
+};
+
+window.resetModalConta = () => {
+  contaDesc.value = "";
+  contaValor.value = "";
+  contaVencimento.value = "";
+  contaTipo.value = "fixa";
+
+  const salvarBtn = document.querySelector("#modalConta .btn-danger");
+
+  salvarBtn.onclick = () => {
+    addConta();
+  };
 };
 
 window.loginGoogle = async () => {
