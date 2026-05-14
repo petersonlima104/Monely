@@ -298,7 +298,10 @@ window.removerConta = async (index) => {
 window.resetModalConta = () => {
   contaDesc.value = "";
   contaValor.value = "";
-  contaVencimento.value = "";
+
+  const hoje = new Date().toISOString().split("T")[0];
+  contaVencimento.value = hoje;
+
   contaTipo.value = "fixa";
 
   const salvarBtn = document.querySelector("#modalConta .btn-danger");
