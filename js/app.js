@@ -450,6 +450,8 @@ async function solicitarPermissaoNotificacao() {
 }
 
 async function verificarContasVencendo() {
+  if (!("Notification" in window)) return;
+
   if (Notification.permission !== "granted") return;
 
   const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
@@ -460,23 +462,17 @@ async function verificarContasVencendo() {
 
   const data = snap.data();
 
-  const agora = new Date();
+  const amanha = new Date();
+  amanha.setDate(amanha.getDate() + 1);
+
+  const diaAmanha = amanha.toISOString().split("T")[0];
 
   (data.contas || []).forEach((conta) => {
-    if (conta.status !== "pago" && conta.vencimento) {
-      const vencimento = new Date(conta.vencimento + "T00:00:00");
-
-      const diferenca = vencimento.getTime() - agora.getTime();
-
-      const horasRestantes = diferenca / (1000 * 60 * 60);
-
-      // ENTRE 12h e 36h antes
-      if (horasRestantes <= 36 && horasRestantes >= 12) {
-        new Notification("Monely", {
-          body: `Sua conta "${conta.desc}" vence amanhã.`,
-          icon: "./assets/icon-192.png",
-        });
-      }
+    if (conta.status !== "pago" && conta.vencimento === diaAmanha) {
+      new Notification("Monely", {
+        body: `Sua conta "${conta.desc}" vence amanhã.`,
+        icon: "./assets/icon-192.png",
+      });
     }
   });
 }
@@ -518,6 +514,9 @@ onAuthStateChanged(auth, async (user) => {
 
     await verificarMes();
     await carregarMeses();
+
+    await verificarContasVencendo();
+
     calcularSaldo();
     atualizarListas();
   } else {
