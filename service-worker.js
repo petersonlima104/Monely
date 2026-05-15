@@ -1,10 +1,10 @@
-const CACHE_NAME = "monely-v3";
+const CACHE_NAME = "monely-v10";
 
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
   "./css/style.css",
-  "./js/app.js",
+  "./js/app.js?v=10",
   "./manifest.json",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
@@ -12,12 +12,13 @@ const FILES_TO_CACHE = [
 
 // INSTALAÇÃO
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(FILES_TO_CACHE);
     }),
   );
-  self.skipWaiting();
 });
 
 // ATIVAÇÃO
@@ -26,19 +27,26 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         }),
       ),
     ),
   );
+
   self.clients.claim();
 });
 
-// FETCH (offline first)
+// FETCH
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    }),
+    fetch(event.request)
+      .then((response) => {
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      }),
   );
 });

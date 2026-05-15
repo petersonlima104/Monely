@@ -116,12 +116,12 @@ async function atualizarListas() {
       }
 
       const dataA = a.vencimento
-        ? new Date(a.vencimento)
-        : new Date("2999-12-31");
+        ? new Date(a.vencimento + "T00:00:00")
+        : new Date("2999-12-31T00:00:00");
 
       const dataB = b.vencimento
-        ? new Date(b.vencimento)
-        : new Date("2999-12-31");
+        ? new Date(b.vencimento + "T00:00:00")
+        : new Date("2999-12-31T00:00:00");
 
       return dataA - dataB;
     })
