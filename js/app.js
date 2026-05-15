@@ -59,12 +59,15 @@ let mesAtual = new Date().toISOString().slice(0, 7);
 async function atualizarListas() {
   const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
 
-  const data = (await getDoc(ref)).data();
+  const snap = await getDoc(ref);
 
-  if (!data) return;
+  if (!snap.exists()) {
+    listaRendas.innerHTML = "";
+    listaContas.innerHTML = "";
+    return;
+  }
 
-  listaRendas.innerHTML = "";
-  listaContas.innerHTML = "";
+  const data = snap.data();
 
   (data.rendas || []).forEach((r, index) => {
     const li = document.createElement("li");
@@ -167,13 +170,20 @@ Excluir
   ${
     c.status !== "pago"
       ? `
-      <button
-        class="btn btn-sm btn-success"
-        onclick="marcarPago(${c.originalIndex})"
-      >
-        Pago
-      </button>
-    `
+        <button
+          class="btn btn-sm btn-success"
+          onclick="marcarPago(${c.originalIndex})"
+        >
+          Pago
+        </button>
+
+        <button
+          class="btn btn-sm btn-primary"
+          onclick="editarConta(${c.originalIndex})"
+        >
+          Editar
+        </button>
+      `
       : ""
   }
 
@@ -409,6 +419,8 @@ async function carregarMeses() {
 mesSelector.addEventListener("change", () => {
   mesAtual = mesSelector.value;
 
+  verificarContasVencendo();
+
   calcularSaldo();
   atualizarListas();
 });
@@ -454,24 +466,27 @@ async function solicitarPermissaoNotificacao() {
 
 async function verificarContasVencendo() {
   if (!("Notification" in window)) return;
-
   if (Notification.permission !== "granted") return;
 
   const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
-
   const snap = await getDoc(ref);
 
   if (!snap.exists()) return;
 
   const data = snap.data();
 
-  const amanha = new Date();
-  amanha.setDate(amanha.getDate() + 1);
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
 
-  const diaAmanha = amanha.toISOString().split("T")[0];
+  const amanha = new Date(hoje);
+  amanha.setDate(hoje.getDate() + 1);
 
   (data.contas || []).forEach((conta) => {
-    if (conta.status !== "pago" && conta.vencimento === diaAmanha) {
+    if (!conta.vencimento || conta.status === "pago") return;
+
+    const venc = new Date(conta.vencimento + "T00:00:00");
+
+    if (venc.getTime() === amanha.getTime()) {
       new Notification("Monely", {
         body: `Sua conta "${conta.desc}" vence amanhã.`,
         icon: "./assets/icon-192.png",
