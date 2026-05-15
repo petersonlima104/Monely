@@ -531,7 +531,11 @@ async function solicitarPermissaoNotificacao() {
   if ("Notification" in window) {
     const permissao = await Notification.requestPermission();
 
-    console.log("Permissão:", permissao);
+    if (permissao === "granted") {
+      console.log("Notificações permitidas");
+    } else {
+      console.log("Notificações bloqueadas");
+    }
   }
 }
 
@@ -568,9 +572,14 @@ async function verificarContasVencendo() {
         if (conta.status === "pago") return;
 
         if (conta.vencimento === amanhaStr) {
-          new Notification("Monely", {
-            body: `Sua conta "${conta.desc}" vence amanhã.`,
-            icon: "./assets/icon-192.png",
+          navigator.serviceWorker.getRegistration().then((registration) => {
+            if (registration) {
+              registration.showNotification("Monely", {
+                body: `Sua conta "${conta.desc}" vence amanhã.`,
+                icon: "./assets/icon-192.png",
+                badge: "./assets/icon-192.png",
+              });
+            }
           });
         }
       } catch (erroConta) {
