@@ -111,13 +111,19 @@ async function atualizarListas() {
       originalIndex: index,
     }))
     .sort((a, b) => {
-      // pendentes primeiro
       if (a.status !== b.status) {
         return a.status === "pendente" ? -1 : 1;
       }
 
-      // ordenar por vencimento
-      return new Date(a.vencimento) - new Date(b.vencimento);
+      const dataA = a.vencimento
+        ? new Date(a.vencimento)
+        : new Date("2999-12-31");
+
+      const dataB = b.vencimento
+        ? new Date(b.vencimento)
+        : new Date("2999-12-31");
+
+      return dataA - dataB;
     })
     .forEach((c, index) => {
       const li = document.createElement("li");
@@ -129,12 +135,16 @@ async function atualizarListas() {
       amanha.setDate(amanha.getDate() + 1);
       amanha.setHours(0, 0, 0, 0);
 
-      const vencimento = new Date(c.vencimento + "T00:00:00");
-
       let classeVencimento = "";
       let textoStatus = c.status;
 
-      if (c.status !== "pago") {
+      let vencimento = null;
+
+      if (c.vencimento) {
+        vencimento = new Date(c.vencimento + "T00:00:00");
+      }
+
+      if (c.status !== "pago" && vencimento) {
         if (vencimento < hoje) {
           classeVencimento = "conta-vencida";
           textoStatus = "Vencida";
@@ -582,8 +592,8 @@ onAuthStateChanged(auth, async (user) => {
 
     await verificarContasVencendo();
 
-    calcularSaldo();
-    atualizarListas();
+    await calcularSaldo();
+    await atualizarListas();
   } else {
     dashboard.classList.add("hidden"); // esconde dashboard
     loginArea.classList.remove("hidden"); // mostra login
