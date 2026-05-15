@@ -525,33 +525,45 @@ async function solicitarPermissaoNotificacao() {
 }
 
 async function verificarContasVencendo() {
-  if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
+  try {
+    if (!("Notification" in window)) return;
 
-  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
-  const snap = await getDoc(ref);
+    if (Notification.permission !== "granted") return;
 
-  if (!snap.exists()) return;
+    const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
 
-  const data = snap.data();
+    const snap = await getDoc(ref);
 
-  const hoje = new Date();
+    if (!snap.exists()) return;
 
-  const amanha = new Date();
-  amanha.setDate(hoje.getDate() + 1);
+    const data = snap.data();
 
-  const amanhaStr = amanha.toISOString().split("T")[0];
+    const hoje = new Date();
 
-  (data.contas || []).forEach((conta) => {
-    if (!conta.vencimento || conta.status === "pago") return;
+    const amanha = new Date();
+    amanha.setDate(hoje.getDate() + 1);
 
-    if (conta.vencimento === amanhaStr) {
-      new Notification("Monely", {
-        body: `Sua conta "${conta.desc}" vence amanhã.`,
-        icon: "./assets/icon-192.png",
-      });
-    }
-  });
+    const amanhaStr = amanha.toISOString().split("T")[0];
+
+    (data.contas || []).forEach((conta) => {
+      try {
+        if (!conta.vencimento) return;
+
+        if (conta.status === "pago") return;
+
+        if (conta.vencimento === amanhaStr) {
+          new Notification("Monely", {
+            body: `Sua conta "${conta.desc}" vence amanhã.`,
+            icon: "./assets/icon-192.png",
+          });
+        }
+      } catch (erroConta) {
+        console.log("Erro notificação conta:", erroConta);
+      }
+    });
+  } catch (erro) {
+    console.log("Erro verificarContasVencendo:", erro);
+  }
 }
 
 function animarValor(elemento, valorFinal) {
