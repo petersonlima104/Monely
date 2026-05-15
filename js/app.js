@@ -69,6 +69,9 @@ async function atualizarListas() {
 
   const data = snap.data();
 
+  listaRendas.innerHTML = "";
+  listaContas.innerHTML = "";
+
   (data.rendas || []).forEach((r, index) => {
     const li = document.createElement("li");
 
@@ -76,19 +79,27 @@ async function atualizarListas() {
 
     li.innerHTML = `
 <div>
+  <strong>${r.desc}</strong><br>
 
-<strong>${r.desc}</strong><br>
-
-<span class="text-success">
-${Number(r.valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-</span>
-
+  <span class="text-success">
+    ${Number(r.valor || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    })}
+  </span>
 </div>
 
-<button class="btn btn-sm btn-danger"
-onclick="removerRenda(${index})">
-Excluir
-</button>
+<div class="d-flex gap-2">
+  <button class="btn btn-sm btn-primary"
+    onclick="editarRenda(${index})">
+    Editar
+  </button>
+
+  <button class="btn btn-sm btn-danger"
+    onclick="removerRenda(${index})">
+    Excluir
+  </button>
+</div>
 `;
 
     listaRendas.appendChild(li);
@@ -272,8 +283,44 @@ window.editarConta = (index) => {
       };
 
       await updateDoc(ref, { contas: data.contas });
+
+      await atualizarListas();
+      await calcularSaldo();
+
+      modal.hide();
+    };
+  });
+};
+
+window.editarRenda = (index) => {
+  const ref = doc(db, "usuarios", auth.currentUser.uid, "meses", mesAtual);
+
+  getDoc(ref).then((snap) => {
+    const data = snap.data();
+    const renda = data.rendas[index];
+
+    rendaDesc.value = renda.desc;
+    rendaValor.value = renda.valor;
+
+    const modal = new bootstrap.Modal(document.getElementById("modalRenda"));
+    modal.show();
+
+    const salvarBtn = document.querySelector("#modalRenda .btn-success");
+
+    salvarBtn.onclick = async () => {
+      data.rendas[index] = {
+        desc: rendaDesc.value,
+        valor: Number(rendaValor.value),
+      };
+
+      await updateDoc(ref, { rendas: data.rendas });
+
+      rendaDesc.value = "";
+      rendaValor.value = "";
+
       atualizarListas();
       calcularSaldo();
+
       modal.hide();
     };
   });
