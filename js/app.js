@@ -141,11 +141,22 @@ async function atualizarListas() {
       let vencimento = null;
 
       if (c.vencimento) {
-        vencimento = new Date(c.vencimento + "T00:00:00");
+        vencimento = new Date(c.vencimento.replace(/-/g, "/"));
       }
 
-      const hojeStr = hoje.toISOString().split("T")[0];
-      const amanhaStr = amanha.toISOString().split("T")[0];
+      const hojeStr =
+        hoje.getFullYear() +
+        "-" +
+        String(hoje.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(hoje.getDate()).padStart(2, "0");
+
+      const amanhaStr =
+        amanha.getFullYear() +
+        "-" +
+        String(amanha.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(amanha.getDate()).padStart(2, "0");
 
       if (c.status !== "pago" && c.vencimento) {
         if (c.vencimento < hojeStr) {
@@ -178,7 +189,7 @@ async function atualizarListas() {
   <small>
   Vencimento: ${
     c.vencimento
-      ? new Date(c.vencimento + "T00:00:00").toLocaleDateString("pt-BR")
+      ? new Date(c.vencimento.replace(/-/g, "/")).toLocaleDateString("pt-BR")
       : "-"
   }
   </small>
@@ -543,7 +554,12 @@ async function verificarContasVencendo() {
     const amanha = new Date();
     amanha.setDate(hoje.getDate() + 1);
 
-    const amanhaStr = amanha.toISOString().split("T")[0];
+    const amanhaStr =
+      amanha.getFullYear() +
+      "-" +
+      String(amanha.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(amanha.getDate()).padStart(2, "0");
 
     (data.contas || []).forEach((conta) => {
       try {
