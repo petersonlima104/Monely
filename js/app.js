@@ -144,14 +144,17 @@ async function atualizarListas() {
         vencimento = new Date(c.vencimento + "T00:00:00");
       }
 
-      if (c.status !== "pago" && vencimento) {
-        if (vencimento < hoje) {
+      const hojeStr = hoje.toISOString().split("T")[0];
+      const amanhaStr = amanha.toISOString().split("T")[0];
+
+      if (c.status !== "pago" && c.vencimento) {
+        if (c.vencimento < hojeStr) {
           classeVencimento = "conta-vencida";
           textoStatus = "Vencida";
-        } else if (vencimento.getTime() === hoje.getTime()) {
+        } else if (c.vencimento === hojeStr) {
           classeVencimento = "conta-hoje";
           textoStatus = "Vence hoje";
-        } else if (vencimento.getTime() === amanha.getTime()) {
+        } else if (c.vencimento === amanhaStr) {
           classeVencimento = "conta-amanha";
           textoStatus = "Vence amanhã";
         }
@@ -533,17 +536,16 @@ async function verificarContasVencendo() {
   const data = snap.data();
 
   const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
 
-  const amanha = new Date(hoje);
+  const amanha = new Date();
   amanha.setDate(hoje.getDate() + 1);
+
+  const amanhaStr = amanha.toISOString().split("T")[0];
 
   (data.contas || []).forEach((conta) => {
     if (!conta.vencimento || conta.status === "pago") return;
 
-    const venc = new Date(conta.vencimento + "T00:00:00");
-
-    if (venc.getTime() === amanha.getTime()) {
+    if (conta.vencimento === amanhaStr) {
       new Notification("Monely", {
         body: `Sua conta "${conta.desc}" vence amanhã.`,
         icon: "./assets/icon-192.png",
