@@ -442,7 +442,12 @@ async function verificarMes() {
     const snapAnterior = await getDoc(refMesAnterior);
 
     let saldoAnterior = 0;
+
     let contasFixas = [];
+
+    let rendasIniciais = [];
+
+    let contasIniciais = [];
 
     if (snapAnterior.exists()) {
       const dadosAnterior = snapAnterior.data();
@@ -458,12 +463,31 @@ async function verificarMes() {
       contasFixas = (dadosAnterior.contas || []).filter(
         (c) => c.tipo === "fixa",
       );
+
+      contasIniciais = [...contasFixas];
+
+      if (saldoAnterior > 0) {
+        rendasIniciais.push({
+          desc: "Mês Anterior",
+          valor: saldoAnterior,
+        });
+      }
+
+      if (saldoAnterior < 0) {
+        contasIniciais.push({
+          desc: "Mês Anterior",
+          valor: Math.abs(saldoAnterior),
+          tipo: "variavel",
+          vencimento: mesAtual + "-01",
+          status: "pendente",
+        });
+      }
     }
 
     await setDoc(refMesAtual, {
-      saldoAnterior: saldoAnterior,
-      rendas: [],
-      contas: contasFixas,
+      saldoAnterior: 0,
+      rendas: rendasIniciais,
+      contas: contasIniciais,
     });
   }
 }
