@@ -456,13 +456,33 @@ async function verificarMes() {
       let saidas = 0;
 
       (dadosAnterior.rendas || []).forEach((r) => (entradas += r.valor));
-      (dadosAnterior.contas || []).forEach((c) => (saidas += c.valor));
+      (dadosAnterior.contas || []).forEach((c) => {
+        if (c.status === "pago") {
+          saidas += Number(c.valor) || 0;
+        }
+      });
 
       saldoAnterior = entradas - saidas;
 
-      contasFixas = (dadosAnterior.contas || []).filter(
-        (c) => c.tipo === "fixa",
-      );
+      contasFixas = (dadosAnterior.contas || [])
+        .filter((c) => c.tipo === "fixa")
+        .map((c) => {
+          let novoVencimento = "";
+
+          if (c.vencimento) {
+            const partes = c.vencimento.split("-");
+
+            const dia = partes[2];
+
+            novoVencimento = `${mesAtual}-${dia}`;
+          }
+
+          return {
+            ...c,
+            status: "pendente",
+            vencimento: novoVencimento,
+          };
+        });
 
       contasIniciais = [...contasFixas];
 
